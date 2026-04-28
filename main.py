@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Request
+import uvicorn
 from exceptions import StoryException
 from router import blog_get, blog_post,user,article, product, file
 from auth import authentication
@@ -20,6 +21,9 @@ app.include_router(blog_post.router)
 @app.get('/')
 def index():
     return {'message': 'Hello World!'}
+
+# if __name__ == "__main__":
+#     uvicorn.run("main:app", host="127.0.0.1", port=8001, reload=True)
 
 @app.exception_handler(StoryException)
 def story_exception_handler(request: Request, exc: StoryException):
