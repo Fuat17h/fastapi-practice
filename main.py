@@ -1,14 +1,15 @@
 from fastapi import FastAPI, HTTPException, Request
-import uvicorn
 from exceptions import StoryException
 from router import blog_get, blog_post,user,article, product, file
 from auth import authentication
 from db import models
 from db.database import engine
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from templates import templates
+from client import html
+from fastapi.websockets import WebSocket
 
 app = FastAPI()
 app.include_router(templates.router)
@@ -20,9 +21,9 @@ app.include_router(product.router)
 app.include_router(blog_get.router)
 app.include_router(blog_post.router)
 
-@app.get('/')
-def index():
-    return {'message': 'Hello World!'}
+# @app.get('/')
+# def index():
+#     return {'message': 'Hello World!'}
 
 # if __name__ == "__main__":
 #     uvicorn.run("main:app", host="127.0.0.1", port=8001, reload=True)
@@ -33,6 +34,23 @@ def story_exception_handler(request: Request, exc: StoryException):
         status_code=418,
         content={'detail': exc.name}
     )
+
+
+clients = []
+
+
+@app.get('/')
+async def get():
+    return HTMLResponse(html)
+
+@app.websocket("/chat")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    client.append(websocket)
+    while True:
+        data = await websocket.receive_text()
+        for client in clients:
+            await client.send_text(data)
 
 # @app.exception_handler(HTTPException)
 # def custom_handler(request: Request, exc: StoryException):
